@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Φυσικοθεραπεία 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1EA;
+    --surface:#FFFFFF;
+    --ink:#1C2624;
+    --muted:#67766F;
+    --line:#DCE2D8;
+    --primary:#1F4B45;
+    --primary-ink:#F3F7F4;
+    --good:#3F8F6F;
+    --good-bg:#E4F2EA;
+    --warn:#C98A3E;
+    --warn-bg:#FBF0DF;
+    --credit:#4C6FA3;
+    --credit-bg:#E7EDF7;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    height:100vh; display:flex; flex-direction:column; overflow:hidden;
+  }
+  .num{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  h1,h2,h3{font-family:'Fraunces',serif; font-weight:600; margin:0;}
+
+  header{
+    flex:0 0 auto; background:var(--primary); color:var(--primary-ink);
+    padding:16px 18px 14px; position:relative;
+  }
+  header .top{display:flex; align-items:center; justify-content:space-between;}
+  header h1{font-size:19px; letter-spacing:.2px;}
+  .status{display:flex; align-items:center; gap:6px; font-size:12px; color:#CFE3DA;}
+  .dot{width:8px; height:8px; border-radius:50%; background:#7CD9A9; box-shadow:0 0 0 3px rgba(124,217,169,.25);}
+  .dot.off{background:#E08787; box-shadow:0 0 0 3px rgba(224,135,135,.25);}
+  .dot.busy{background:#E0C877; box-shadow:0 0 0 3px rgba(224,200,119,.25);}
+  .pulse{width:100%; height:14px; margin-top:8px; opacity:.55;}
+
+  main{flex:1 1 auto; overflow-y:auto; padding:14px 14px 90px;}
+  .screen{display:none;}
+  .screen.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:translateY(0)}}
+
+  .searchbar{
+    display:flex; gap:8px; margin-bottom:12px;
+  }
+  .searchbar input{
+    flex:1; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+    background:var(--surface); font-size:14px; font-family:inherit; color:var(--ink);
+  }
+  .btn{
+    border:none; border-radius:10px; padding:10px 14px; font-family:'Inter',sans-serif;
+    font-weight:600; font-size:13px; cursor:pointer; background:var(--primary); color:var(--primary-ink);
+  }
+  .btn.ghost{background:var(--surface); color:var(--primary); border:1px solid var(--line);}
+  .btn.small{padding:7px 10px; font-size:12px;}
+  .btn:disabled{opacity:.5; cursor:default;}
+
+  .card{
+    background:var(--surface); border-radius:var(--radius); padding:14px;
+    margin-bottom:10px; border:1px solid var(--line);
+  }
+  .card.tappable{cursor:pointer;}
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+  .card-name{font-family:'Fraunces',serif; font-weight:600; font-size:16px;}
+  .card-code{font-size:11px; color:var(--muted); margin-top:2px;}
+  .badge{
+    font-size:11px; font-weight:600; padding:4px 9px; border-radius:100px; white-space:nowrap;
+  }
+  .badge.good{background:var(--good-bg); color:var(--good);}
+  .badge.warn{background:var(--warn-bg); color:var(--warn);}
+  .badge.credit{background:var(--credit-bg); color:var(--credit);}
+  .card-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px;
+  }
+  .stat-mini{text-align:left;}
+  .stat-mini .v{font-size:15px; font-weight:600;}
+  .stat-mini .l{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;}
+
+  .edit-panel{
+    margin-top:12px; padding-top:12px; border-top:1px dashed var(--line);
+    display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  }
+  .field{display:flex; flex-direction:column; gap:4px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:11px; color:var(--muted); font-weight:600;}
+  .field input, .field textarea{
+    border:1px solid var(--line); border-radius:8px; padding:8px 9px; font-size:13.5px;
+    font-family:'IBM Plex Mono',monospace; background:#FAFCFA;
+  }
+  .field textarea{font-family:'Inter',sans-serif; resize:vertical; min-height:40px;}
+  .edit-actions{grid-column:1/-1; display:flex; gap:8px; margin-top:4px;}
+
+  .stat-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; text-align:center;}
+  .stat-card .big{font-size:26px; font-weight:600;}
+  .stat-card .lbl{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .stats-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+
+  .bars{display:flex; align-items:flex-end; gap:6px; height:120px; padding:10px 4px 0;}
+  .bar-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+  .bar{width:100%; max-width:20px; border-radius:5px 5px 2px 2px; background:var(--primary); transition:height .5s ease;}
+  .bar-col .m{font-size:9px; color:var(--muted); margin-top:5px;}
+
+  section.block{margin-bottom:18px;}
+  section.block h3{font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-weight:600; margin-bottom:8px;}
+
+  nav.tabs{
+    position:fixed; left:0; right:0; bottom:0; height:72px;
+    background:var(--surface); border-top:1px solid var(--line);
+    display:flex; padding-bottom:env(safe-area-inset-bottom);
+  }
+  nav.tabs button{
+    flex:1; border:none; background:none; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:3px; color:var(--muted); font-family:inherit;
+    font-size:10.5px; font-weight:600; cursor:pointer;
+  }
+  nav.tabs button svg{width:20px; height:20px;}
+  nav.tabs button.active{color:var(--primary);}
+  nav.tabs button.active svg{stroke:var(--primary);}
+
+  .empty{text-align:center; padding:40px 20px; color:var(--muted);}
+  .empty h3{color:var(--ink); margin-bottom:6px;}
+
+  .settings-row{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--line); font-size:13.5px;}
+  .settings-row:last-child{border-bottom:none;}
+  .settings-row .k{color:var(--muted);}
+  .toast{
+    position:fixed; left:50%; bottom:90px; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:10px 16px; border-radius:10px; font-size:13px;
+    opacity:0; transition:all .25s ease; pointer-events:none; z-index:50; max-width:85%; text-align:center;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .spin{animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top">
+    <h1>Φυσικοθεραπεία</h1>
+    <div class="status"><span id="statusDot" class="dot off"></span><span id="statusText">σύνδεση...</span></div>
+  </div>
+  <svg class="pulse" viewBox="0 0 300 20" preserveAspectRatio="none">
+    <polyline points="0,10 60,10 75,2 90,18 105,10 300,10" fill="none" stroke="#CFE3DA" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</header>
+
+<main>
+
+  <!-- ΑΣΘΕΝΕΙΣ -->
+  <section id="screen-patients" class="screen active">
+    <div class="searchbar">
+      <input id="patientSearch" placeholder="Αναζήτηση επωνύμου...">
+      <button class="btn small" id="refreshPatients" title="Ανανέωση">⟳</button>
+    </div>
+    <div id="patientsList"></div>
+  </section>
+
+  <!-- ΛΟΓΑΡΙΑΣΜΟΙ -->
+  <section id="screen-accounts" class="screen">
+    <div class="searchbar">
+      <div style="flex:1; font-size:13px; color:var(--muted); align-self:center;">Αυτόματος υπολογισμός από το Sheet</div>
+      <button class="btn small" id="refreshAccounts" title="Ανανέωση">⟳</button>
+    </div>
+    <div id="accountsList"></div>
+  </section>
+
+  <!-- ΟΙΚΟΝΟΜΙΚΑ -->
+  <section id="screen-stats" class="screen">
+    <div class="stats-grid" id="statsCards"></div>
+    <section class="block">
+      <h3>Έσοδα ανά μήνα</h3>
+      <div class="card"><div class="bars" id="monthBars"></div></div>
+    </section>
+    <div style="text-align:right;">
+      <button class="btn ghost small" id="refreshStats">⟳ Ανανέωση</button>
+    </div>
+  </section>
+
+  <!-- ΡΥΘΜΙΣΕΙΣ -->
+  <section id="screen-settings" class="screen">
+    <div class="card">
+      <h3 style="font-size:15px; margin-bottom:10px;">Σύνδεση</h3>
+      <div class="settings-row"><span class="k">Κατάσταση</span><span id="settingsStatus">—</span></div>
+      <div class="settings-row"><span class="k">Google Sheet</span><span>Φυσικοθεραπεία_v8</span></div>
+      <div class="settings-row"><span class="k">Τελευταία ανανέωση</span><span id="lastSync" class="num">—</span></div>
+    </div>
+    <button class="btn ghost" id="testConn" style="width:100%; margin-top:10px;">Δοκιμή σύνδεσης</button>
+  </section>
+
+</main>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-screen="patients">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"/></svg>
+    Ασθενείς
+  </button>
+  <button class="tab-btn" data-screen="accounts">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18"/></svg>
+    Λογαριασμοί
+  </button>
+  <button class="tab-btn" data-screen="stats">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
+    Οικονομικά
+  </button>
+  <button class="tab-btn" data-screen="settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.9 7.9 0 000-2l2-1.6-2-3.4-2.4.7a8 8 0 00-1.7-1L14.8 3h-3.6l-.5 2.7a8 8 0 00-1.7 1l-2.4-.7-2 3.4L6.6 11a7.9 7.9 0 000 2l-2 1.6 2 3.4 2.4-.7a8 8 0 001.7 1l.5 2.7h3.6l.5-2.7a8 8 0 001.7-1l2.4.7 2-3.4z"/></svg>
+    Ρυθμίσεις
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==== ΡΥΘΜΙΣΕΙΣ ΣΥΝΔΕΣΗΣ ====
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbzTQDsaBsRQ2w3SSZzneaddhi3jjXjOaGa7w1qQwdSvdGe0eqbV7CO-rDuNdWHSmuPpnQ/exec';
+const API_KEY  = '617080aB..';
+
+// Πεδία που ΕΠΙΤΡΕΠΕΤΑΙ να επεξεργαστεί ο χρήστης (ποτέ τα υπολογιζόμενα: Συνολική Αξία, Υπόλοιπο, Κατάσταση)
+const EDITABLE_PATIENT_FIELDS = ['Επώνυμο','Όνομα','Τηλέφωνο','Τιμή/Θεραπεία €','Αρ. Θεραπειών','Πληρωμές €','Σημειώσεις'];
+
+let cache = { patients: null, accounts: null, stats: null, summary: null };
+let lastSyncTime = null;
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+function setStatus(state, text){
+  const dot = document.getElementById('statusDot');
+  dot.className = 'dot ' + (state === 'ok' ? '' : state === 'busy' ? 'busy' : 'off');
+  document.getElementById('statusText').textContent = text;
+  document.getElementById('settingsStatus').textContent = text;
+}
+
+async function api(action, sheet, extra){
+  extra = extra || {};
+  const p = new URLSearchParams({ key: API_KEY, action, sheet });
+  if (extra.row) p.set('row', extra.row);
+  if (extra.data) p.set('data', encodeURIComponent(JSON.stringify(extra.data)));
+  setStatus('busy','ενημέρωση...');
+  try{
+    const res = await fetch(BASE_URL + '?' + p.toString());
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    setStatus('ok','συνδεδεμένο');
+    lastSyncTime = new Date();
+    document.getElementById('lastSync').textContent = lastSyncTime.toLocaleTimeString('el-GR');
+    return json;
+  } catch(err){
+    setStatus('off','σφάλμα σύνδεσης');
+    toast('Σφάλμα: ' + err.message);
+    throw err;
+  }
+}
+
+// ---------- ΑΣΘΕΝΕΙΣ ----------
+function statusBadge(kat){
+  if(!kat) return '';
+  if(kat.indexOf('Οφείλει') > -1) return `<span class="badge warn">${kat}</span>`;
+  if(kat.indexOf('Πίστωση') > -1) return `<span class="badge credit">${kat}</span>`;
+  return `<span class="badge good">${kat}</span>`;
+}
+
+function renderPatients(filter){
+  const el = document.getElementById('patientsList');
+  if(!cache.patients){ el.innerHTML = '<div class="empty">Φόρτωση...</div>'; return; }
+  let rows = cache.patients.rows.filter(r => r['Επώνυμο']);
+  if(filter) rows = rows.filter(r => (r['Επώνυμο']||'').toString().toLowerCase().includes(filter.toLowerCase()));
+  if(!rows.length){ el.innerHTML = '<div class="empty"><h3>Δεν βρέθηκαν ασθενείς</h3><p>Δοκίμασε άλλο όνομα.</p></div>'; return; }
+
+  el.innerHTML = rows.map(r => {
+    const id = r._row;
+    return `
+    <div class="card">
+      <div class="card-top tappable" onclick="toggleEdit(${id})">
+        <div>
+          <div class="card-name">${r['Επώνυμο']||''} ${r['Όνομα']||''}</div>
+          <div class="card-code">${r['Κωδ.']||''}</div>
+        </div>
+        ${statusBadge(r['Κατάσταση'])}
+      </div>
+      <div class="card-grid">
+        <div class="stat-mini"><div class="v num">${r['Αρ. Θεραπειών']||0}</div><div class="l">Θεραπείες</div></div>
+        <div class="stat-mini"><div class="v num">${r['Συνολική Αξία €']||0}€</div><div class="l">Αξία</div></div>
+        <div class="stat-mini"><div class="v num">${r['Υπόλοιπο €']||0}€</div><div class="l">Υπόλοιπο</div></div>
+      </div>
+      <div class="edit-panel" id="edit-${id}" style="display:none;">
+        <div class="field"><label>Επώνυμο</label><input id="f-Επώνυμο-${id}" value="${r['Επώνυμο']||''}"></div>
+        <div class="field"><label>Όνομα</label><input id="f-Όνομα-${id}" value="${r['Όνομα']||''}"></div>
+        <div class="field"><label>Τηλέφωνο</label><input id="f-Τηλέφωνο-${id}" value="${r['Τηλέφωνο']||''}"></div>
+        <div class="field"><label>Τιμή/Θεραπεία €</label><input id="f-Τιμή/Θεραπεία €-${id}" value="${r['Τιμή/Θεραπεία €']||0}"></div>
+        <div class="field"><label>Αρ. Θεραπειών</label><input id="f-Αρ. Θεραπειών-${id}" value="${r['Αρ. Θεραπειών']||0}"></div>
+        <div class="field"><label>Πληρωμές €</label><input id="f-Πληρωμές €-${id}" value="${r['Πληρωμές €']||0}"></div>
+        <div class="field full"><label>Σημειώσεις</label><textarea id="f-Σημειώσεις-${id}">${r['Σημειώσεις']||''}</textarea></div>
+        <div class="edit-actions">
+          <button class="btn small" onclick="savePatient(${id})">Αποθήκευση</button>
+          <button class="btn ghost small" onclick="toggleEdit(${id})">Άκυρο</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.toggleEdit = function(id){
+  const p = document.getElementById('edit-' + id);
+  p.style.display = p.style.display === 'none' ? 'grid' : 'none';
+};
+
+window.savePatient = async function(id){
+  const data = {};
+  EDITABLE_PATIENT_FIELDS.forEach(f => {
+    const input = document.getElementById(`f-${f}-${id}`);
+    if(input) data[f] = input.value;
+  });
+  try{
+    await api('update','patients',{ row: id, data });
+    toast('Αποθηκεύτηκε ✓');
+    await loadPatients(true);
+  }catch(e){}
+};
+
+async function loadPatients(force){
+  if(cache.patients && !force){ renderPatients(document.getElementById('patientSearch').value); return; }
+  const json = await api('read','patients');
+  cache.patients = json;
+  renderPatients(document.getElementById('patientSearch').value);
+}
+
+// ---------- ΛΟΓΑΡΙΑΣΜΟΙ ----------
+function renderAccounts(){
+  const el = document.getElementById('accountsList');
+  if(!cache.accounts){ el.innerHTML = '<div class="empty">Φόρτωση...</div>'; return; }
+  let rows = cache.accounts.rows.filter(r => r['Όνομα Ασθενή']);
+  rows.sort((a,b) => (parseFloat(b['Υπόλοιπο €'])||0) - (parseFloat(a['Υπόλοιπο €'])||0));
+  if(!rows.length){ el.innerHTML = '<div class="empty">Δεν υπάρχουν λογαριασμοί.</div>'; return; }
+  el.innerHTML = rows.map(r => `
+    <div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${r['Όνομα Ασθενή']}</div>
+          <div class="card-code">${r['Αρ. Θεραπειών']||0} θεραπείες · ${r['Τιμή/Θεραπεία €']||0}€/θεραπεία</div>
+        </div>
+        ${statusBadge((r['Κατάσταση']||'').toString())}
+      </div>
+      <div class="card-grid">
+        <div class="stat-mini"><div class="v num">${r['Αξία Θεραπειών €']||0}€</div><div class="l">Αξία</div></div>
+        <div class="stat-mini"><div class="v num">${r['Πληρωμές €']||0}€</div><div class="l">Πληρωμές</div></div>
+        <div class="stat-mini"><div class="v num">${r['Υπόλοιπο €']||0}€</div><div class="l">Υπόλοιπο</div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadAccounts(force){
+  if(cache.accounts && !force){ renderAccounts(); return; }
+  cache.accounts = await api('read','accounts');
+  renderAccounts();
+}
+
+// ---------- ΟΙΚΟΝΟΜΙΚΑ ----------
+function renderStats(){
+  const cards = document.getElementById('statsCards');
+  const bars = document.getElementById('monthBars');
+  if(!cache.stats || !cache.summary){ cards.innerHTML = '<div class="empty">Φόρτωση...</div>'; return; }
+
+  const s = {};
+  cache.stats.rows.forEach(r => {
+    const keys = Object.keys(r).filter(k => k !== '_row');
+    for(let i=0;i<keys.length;i+=2){ if(keys[i+1]) s[r[keys[i]]] = r[keys[i+1]]; }
+  });
+
+  const summaryRows = cache.summary.rows.filter(r => r['Μήνας'] && r['Μήνας'] !== 'ΣΥΝΟΛΟ ΕΤΟΥΣ');
+
+  cards.innerHTML = `
+    <div class="stat-card"><div class="big num">${s['Συνολικά Έσοδα']||0}€</div><div class="lbl">Έσοδα</div></div>
+    <div class="stat-card"><div class="big num">${s['Καθαρό Αποτέλεσμα']||0}€</div><div class="lbl">Καθαρό</div></div>
+    <div class="stat-card"><div class="big num">${s['Σύνολο Ασθενών']||0}</div><div class="lbl">Ασθενείς</div></div>
+    <div class="stat-card"><div class="big num">${s['Συνολικές Οφειλές €']||0}€</div><div class="lbl">Οφειλές</div></div>
+  `;
+
+  const max = Math.max(1, ...summaryRows.map(r => parseFloat(r['Έσοδα €'])||0));
+  bars.innerHTML = summaryRows.map(r => {
+    const v = parseFloat(r['Έσοδα €'])||0;
+    const h = Math.max(3, (v/max)*100);
+    return `<div class="bar-col"><div class="bar" style="height:${h}%"></div><div class="m">${(r['Μήνας']||'').toString().slice(0,3)}</div></div>`;
+  }).join('');
+}
+
+async function loadStats(force){
+  if(cache.stats && cache.summary && !force){ renderStats(); return; }
+  cache.stats = await api('read','stats');
+  cache.summary = await api('read','summary');
+  renderStats();
+}
+
+// ---------- NAV ----------
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    const name = btn.dataset.screen;
+    document.getElementById('screen-' + name).classList.add('active');
+    if(name === 'patients') loadPatients();
+    if(name === 'accounts') loadAccounts();
+    if(name === 'stats') loadStats();
+  });
+});
+
+document.getElementById('patientSearch').addEventListener('input', e => renderPatients(e.target.value));
+document.getElementById('refreshPatients').addEventListener('click', () => loadPatients(true));
+document.getElementById('refreshAccounts').addEventListener('click', () => loadAccounts(true));
+document.getElementById('refreshStats').addEventListener('click', () => loadStats(true));
+document.getElementById('testConn').addEventListener('click', async () => {
+  try{ await api('read','patients'); toast('Η σύνδεση λειτουργεί ✓'); }catch(e){}
+});
+
+loadPatients();
+</script>
+</body>
+</html>
